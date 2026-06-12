@@ -66,6 +66,41 @@ gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
 4. Use the default static site settings.
 5. Deploy.
 
+### Railway deployment
+
+You can deploy both backend and frontend on Railway as an isolated monorepo.
+
+1. Create a new Railway project.
+2. Add a service for the backend:
+   - Root directory: `/backend`
+   - Build command: use `Dockerfile` (Railway detects the Dockerfile in `backend/`)
+   - Start command: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`
+   - Environment variables:
+     - `DJANGO_SECRET_KEY` = <generate a strong secret>
+     - `DJANGO_DEBUG` = `0`
+     - `DJANGO_ALLOWED_HOSTS` = `*` or your Railway domain
+     - `DATABASE_URL` = <Railway Postgres database URL>
+
+3. Add a service for the frontend:
+   - Root directory: `/chess-anime`
+   - Build command: `npm install && npm run build`
+   - Start command: `npm run preview -- --host 0.0.0.0 --port $PORT`
+   - Environment variables:
+     - `VITE_BASE_API` = `https://<your-backend>.railway.app/api`
+
+4. Use `/backend/railway.json` and `/chess-anime/railway.json` for service-specific config.
+5. Use `/railway.json` to define both services at the repo root.
+
+### Backend database on Railway
+
+If you add a Railway PostgreSQL service, set `DATABASE_URL` in the backend service environment variables with the value Railway provides. Railway will automatically provision and connect the database.
+
+### Notes
+
+- Railway will auto-detect `railway.json` / `railway.toml` in each service root.
+- The backend uses Django with a Dockerfile and now supports `DATABASE_URL` via `dj-database-url`.
+- The frontend uses Vite and `VITE_BASE_API` to connect to the Railway backend.
+
 ### GitHub Actions (automatic deploys)
 
 I added two GitHub Actions workflows that can deploy automatically when you push to `main`. To use them you must add the following repository secrets in GitHub:
