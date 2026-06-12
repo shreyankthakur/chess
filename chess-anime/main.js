@@ -1287,7 +1287,10 @@ const joinGameButton = document.getElementById('join-game-button');
 const gameIdInput = document.getElementById('game-id-input');
 const currentGameDisplay = document.getElementById('current-game');
 
-const BASE_API = 'http://localhost:8000/api';
+// Use Vite env variable `VITE_BASE_API` in production, fallback to localhost for local dev
+const BASE_API = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BASE_API)
+  ? import.meta.env.VITE_BASE_API
+  : 'http://localhost:8000/api';
 let currentGameId = null;
 let pollInterval = null;
 
