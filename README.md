@@ -91,7 +91,41 @@ If you want, I can walk you through finding the `RENDER_SERVICE_ID`, creating th
 In `chess-anime/main.js`, update the backend URL after Render deploys:
 
 ```js
-const BASE_API = 'https://<your-backend>.onrender.com/api';
+// Prefer setting `VITE_BASE_API` in Vercel environment variables to avoid committing URLs.
+// Example: set `VITE_BASE_API` to `https://<your-backend>.onrender.com/api` in Vercel.
+const BASE_API = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BASE_API)
+	? import.meta.env.VITE_BASE_API
+	: 'http://localhost:8000/api';
 ```
 
 Then redeploy the frontend.
+
+---
+
+## Quick copyable commands
+
+Generate a Render API key and list services (to find `service id`):
+```bash
+# replace <your-render-api-key> temporarily when using curl
+curl -H "Authorization: Bearer <RENDER_API_KEY>" https://api.render.com/v1/services
+```
+
+Add GitHub secrets via `gh` (recommended):
+```bash
+gh auth login
+gh secret set RENDER_API_KEY --body "<your-render-api-key>"
+gh secret set RENDER_SERVICE_ID --body "<your-render-service-id>"
+gh secret set VERCEL_TOKEN --body "<your-vercel-token>"
+gh secret set VERCEL_ORG_ID --body "<your-vercel-org-id>"
+gh secret set VERCEL_PROJECT_ID --body "<your-vercel-project-id>"
+```
+
+Trigger the workflows by pushing an empty commit:
+```bash
+git commit --allow-empty -m "Trigger CI after adding secrets"
+git push
+```
+
+After pushing, check GitHub Actions: `Settings` -> `Actions` -> `Workflow runs`.
+
+If you'd like, say "secrets added" and I will verify the workflow runs and follow deployment logs.
