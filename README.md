@@ -34,7 +34,44 @@ npm run dev
 
 ## Deployment
 
-Recommended deployment target:
-- Heroku, Railway, Render, or Vercel for frontend + Railway/Heroku for backend.
+### Backend (Render)
 
-If you want, I can also add a `Procfile` and deployment config for one provider.
+1. Push this repository to GitHub.
+2. Create a new Web Service on Render.
+3. Connect your GitHub repository.
+4. Use this build command:
+
+```bash
+pip install -r requirements.txt
+```
+
+5. Use this start command:
+
+```bash
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+```
+
+6. Set env vars:
+- `DJANGO_DEBUG=0`
+- `DJANGO_SECRET_KEY` (generate a strong secret)
+- `DJANGO_ALLOWED_HOSTS=*`
+
+7. Render will deploy the backend and provide a public URL.
+
+### Frontend (Vercel)
+
+1. Create a new project on Vercel.
+2. Connect the same GitHub repository.
+3. Choose the `chess-anime` folder as the project root.
+4. Use the default static site settings.
+5. Deploy.
+
+### Frontend API configuration
+
+In `chess-anime/main.js`, update the backend URL after Render deploys:
+
+```js
+const BASE_API = 'https://<your-backend>.onrender.com/api';
+```
+
+Then redeploy the frontend.
