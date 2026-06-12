@@ -66,6 +66,26 @@ gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
 4. Use the default static site settings.
 5. Deploy.
 
+### GitHub Actions (automatic deploys)
+
+I added two GitHub Actions workflows that can deploy automatically when you push to `main`. To use them you must add the following repository secrets in GitHub:
+
+- For Render (backend):
+	- `RENDER_API_KEY` — your Render API key
+	- `RENDER_SERVICE_ID` — the Render service id for the backend
+
+- For Vercel (frontend):
+	- `VERCEL_TOKEN` — your Vercel token
+	- `VERCEL_ORG_ID` — your Vercel org id
+	- `VERCEL_PROJECT_ID` — your Vercel project id
+
+Once those secrets are set, pushing to `main` will trigger the workflows:
+
+- `.github/workflows/deploy-backend-render.yml` — triggers a Render deploy when `backend/` changes.
+- `.github/workflows/deploy-frontend-vercel.yml` — deploys the `chess-anime` folder to Vercel on push.
+
+If you want, I can walk you through finding the `RENDER_SERVICE_ID`, creating the API key, or setting the Vercel variables.
+
 ### Frontend API configuration
 
 In `chess-anime/main.js`, update the backend URL after Render deploys:
