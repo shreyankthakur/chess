@@ -3,7 +3,7 @@
   "services": [
     {
       "name": "chess-backend",
-      "rootDirectory": "/backend",
+      "rootDirectory": "backend",
       "build": {
         "builder": "DOCKERFILE"
       },
@@ -13,7 +13,7 @@
     },
     {
       "name": "chess-frontend",
-      "rootDirectory": "/chess-anime",
+      "rootDirectory": "chess-anime",
       "build": {
         "buildCommand": "npm install && npm run build"
       },
