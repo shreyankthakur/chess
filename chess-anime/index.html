@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Chess</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a1a; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    canvas { display: block; }
+
+    #ui-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 10;
+    }
+
+    #title-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(6, 6, 24, 0.86);
+      backdrop-filter: blur(12px);
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+    }
+    #title-bar h1 {
+      font-size: 1.4rem; font-weight: 700; letter-spacing: 3px;
+      background: linear-gradient(90deg, #e879f9, #818cf8);
+      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+    #turn-badge {
+      padding: 6px 18px; border-radius: 20px;
+      background: linear-gradient(90deg, #7c3aed, #4f46e5);
+      color: #fff; font-size: 0.8rem; letter-spacing: 2px;
+      text-transform: uppercase; font-weight: 600;
+      pointer-events: none;
+    }
+
+    #status-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(8, 10, 26, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 18px 26px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(99, 102, 241, 0.18);
+    }
+
+    #move-log {
+      font-size: 0.78rem; color: #e5e7ff; letter-spacing: 1px;
+      max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    #controls-hint {
+      font-size: 0.75rem; color: #9ca3af; letter-spacing: 1px;
+    }
+
+    #game-message {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(79,70,229,0.95));
+      color: #fff; padding: 24px 48px; border-radius: 16px;
+      font-size: 1.6rem; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; display: none;
+      border: 1px solid rgba(232,121,249,0.4);
+      box-shadow: 0 0 60px rgba(124,58,237,0.6);
+      pointer-events: all; cursor: pointer; text-align: center;
+    }
+    #game-message span { display: block; font-size: 0.8rem; margin-top: 8px; opacity: 0.7; letter-spacing: 2px; }
+
+    #piece-selector {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(8,12,28,0.96); border: 1px solid rgba(79,70,229,0.35);
+      border-radius: 20px; padding: 24px; display: none;
+      flex-direction: column; align-items: center; gap: 16px;
+      pointer-events: all; z-index: 100;
+      box-shadow: 0 24px 88px rgba(0,0,0,0.3);
+    }
+    #piece-selector h3 { color: #c4b5fd; font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; }
+    #piece-selector .pieces { display: flex; gap: 14px; }
+    #piece-selector button {
+      background: #1b1a44; border: 1px solid rgba(79,70,229,0.35); color: #f8c4ff;
+      font-size: 2rem; width: 64px; height: 64px; border-radius: 14px;
+      cursor: pointer; transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    #piece-selector button:hover { background: #4f46e5; transform: scale(1.1); }
+
+    #environment-panel {
+      position: fixed; top: 86px; left: 24px;
+      background: linear-gradient(180deg, rgba(10,12,30,0.98), rgba(15,17,38,0.96));
+      border: 1px solid rgba(99,102,241,0.30);
+      border-radius: 20px; padding: 18px 18px;
+      display: flex; flex-direction: column; gap: 12px;
+      z-index: 20; pointer-events: all;
+      width: 230px;
+      box-shadow: 0 26px 80px rgba(0,0,0,0.28);
+    }
+    #environment-panel .panel-title {
+      font-size: 0.75rem; color: #a5b4fc;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    #environment-panel select {
+      width: 100%; border-radius: 12px; border: 1px solid #4f46e5;
+      background: rgba(15,15,40,0.98); color: #eef2ff;
+      padding: 10px 12px; font-size: 0.9rem;
+    }
+    #online-panel {
+      position: fixed; top: 320px; left: 24px;
+      background: linear-gradient(180deg, rgba(10,12,30,0.98), rgba(15,17,38,0.96));
+      border: 1px solid rgba(99,102,241,0.30);
+      border-radius: 20px; padding: 18px 18px;
+      display: flex; flex-direction: column; gap: 12px;
+      z-index: 20; pointer-events: all;
+      width: 230px;
+      box-shadow: 0 26px 80px rgba(0,0,0,0.28);
+    }
+    #online-panel .panel-title {
+      font-size: 0.75rem; color: #a5b4fc;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    #online-panel select,
+    #online-panel input {
+      width: 100%; border-radius: 12px; border: 1px solid #4f46e5;
+      background: rgba(15,15,40,0.98); color: #eef2ff;
+      padding: 10px 12px; font-size: 0.9rem;
+    }
+    #online-panel input {
+      outline: none;
+    }
+    #online-panel button {
+      border-radius: 12px; border: 1px solid #4f46e5;
+      background: #1f1c4d; color: #eef2ff; padding: 10px 12px;
+      cursor: pointer; font-size: 0.9rem; transition: transform 0.2s, background 0.2s;
+    }
+    #online-panel button:hover { background: #4f46e5; transform: translateY(-1px); }
+    #online-panel .online-row { display: flex; gap: 10px; }
+    #online-panel .online-list {
+      min-height: 70px; padding: 10px; background: rgba(79,70,229,0.08);
+      border-radius: 12px; color: #eef2ff; font-size: 0.82rem;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    #online-status {
+      padding: 10px; background: rgba(99,102,241,0.14); border-radius: 12px;
+      color: #dbeafe; font-size: 0.85rem;
+    }
+    .online-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(79,70,229,0.2); font-size: 0.75rem; color: #eef2ff; }
+    .online-row input { flex: 1; }
+    #online-panel .panel-note { background: rgba(79,70,229,0.08); }
+    #character-select-panel {
+      position: fixed; top: 90px; right: 20px;
+      display: flex; gap: 12px; pointer-events: all; z-index: 20;
+    }
+    .char-select-card {
+      background: rgba(15,15,40,0.92); border: 1px solid rgba(99,102,241,0.35);
+      border-radius: 16px; padding: 16px; width: 170px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .char-select-title {
+      font-size: 0.75rem; color: #a5b4fc;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .char-select-name {
+      font-size: 1rem; color: #eef2ff; font-weight: 700;
+      min-height: 24px;
+    }
+    .char-button {
+      width: 100%; border-radius: 12px; border: 1px solid #4f46e5;
+      background: #1f1c4d; color: #ede9fe; padding: 10px 12px;
+      cursor: pointer; font-size: 0.9rem; transition: transform 0.2s, background 0.2s;
+    }
+    .char-button:hover { background: #4f46e5; transform: translateY(-1px); }
+    .char-button.char-static { cursor: default; opacity: 0.8; pointer-events: none; }
+    .char-button.char-static:hover { transform: none; background: #1f1c4d; }
+
+    .char-card {
+      position: fixed; bottom: 70px;
+      background: rgba(6, 8, 24, 0.92); border-radius: 16px;
+      padding: 14px 20px; color: #fff; min-width: 150px;
+      border: 1px solid rgba(99,102,241,0.3);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 20px 70px rgba(0,0,0,0.28);
+    }
+    #card-white { left: 20px; border-color: rgba(232,121,249,0.4); }
+    #card-black { right: 20px; border-color: rgba(129,140,248,0.4); }
+    .char-name { font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
+    .char-side { font-size: 0.65rem; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+    #card-white .char-name { color: #f9a8d4; }
+    #card-black .char-name { color: #818cf8; }
+  </style>
+</head>
+<body>
+  <div id="ui-overlay">
+    <div id="title-bar">
+      <h1>⚔ Photo Chess</h1>
+      <div id="turn-badge">White's Turn</div>
+    </div>
+
+    <div class="char-card" id="card-white">
+      <div class="char-name">Player 1</div>
+      <div class="char-side">⬜ Default portrait loaded</div>
+    </div>
+    <div id="environment-panel">
+      <div class="panel-title">Scene Environment</div>
+      <select id="background-select">
+        <option value="studio">Studio</option>
+        <option value="sunny">Sunny</option>
+        <option value="rain">Rain</option>
+        <option value="snow">Snow</option>
+      </select>
+      <div class="panel-title">Performance</div>
+      <select id="performance-select">
+        <option value="high">High</option>
+        <option value="medium" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <div class="panel-note">Select an environment and let the seated strategist take in heavy rain, snow, or bright sun.</div>
+    </div>
+
+    <div id="online-panel">
+      <div class="panel-title">Online Lobby</div>
+      <select id="game-mode-select">
+        <option value="pass">Pass & Play</option>
+        <option value="online">Online Match</option>
+      </select>
+      <div class="panel-title">Online Status</div>
+      <div id="online-status">Local pass-and-play active</div>
+      <div class="panel-title">Friend Search</div>
+      <div class="online-row">
+        <input id="friend-search" placeholder="Search username..." />
+        <button id="friend-search-button">Search</button>
+      </div>
+      <div class="panel-title">Match</div>
+      <div class="online-row">
+        <button id="create-game-button">Create Game</button>
+        <input id="game-id-input" placeholder="Game ID" />
+        <button id="join-game-button">Join</button>
+      </div>
+      <div id="current-game" class="panel-note">No game connected</div>
+      <div id="friend-list" class="online-list">
+        <div class="online-pill">No friends yet</div>
+      </div>
+      <div class="panel-title">Incoming Challenges</div>
+      <div id="challenge-list" class="online-list">
+        <div class="online-pill">No active challenges</div>
+      </div>
+      <div class="panel-note">Online flow is ready for server hookup: friend requests, challenge invites, and match setup.</div>
+    </div>
+
+    <div class="char-card" id="card-black">
+      <div class="char-name">Player 2</div>
+      <div class="char-side">⬛ Default portrait loaded</div>
+    </div>
+
+    <div id="status-bar">
+      <div id="move-log">Click a piece to start playing</div>
+      <div id="controls-hint">🖱 Drag to rotate · Scroll to zoom</div>
+    </div>
+  </div>
+
+  <div id="game-message">
+    <div id="msg-text">Check!</div>
+    <span id="msg-sub">Click to continue</span>
+  </div>
+
+  <div id="piece-selector">
+    <h3>Promote Pawn To</h3>
+    <div class="pieces">
+      <button data-piece="q">♛</button>
+      <button data-piece="r">♜</button>
+      <button data-piece="b">♝</button>
+      <button data-piece="n">♞</button>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 520" width="320" height="520">
+  <defs>
+    <radialGradient id="skinGlow" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#fde8d0"/>
+      <stop offset="100%" stop-color="#f5c8a0"/>
+    </radialGradient>
+    <radialGradient id="cheekR" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f9a8d4" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#f9a8d4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fce7f3"/>
+      <stop offset="100%" stop-color="#f0abcb"/>
+    </linearGradient>
+    <linearGradient id="dressGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+    <linearGradient id="bgGlow" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#fdf2f8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#fdf2f8" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="softBlur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.2"/>
+    </filter>
+  </defs>
+
+  <!-- Soft background halo -->
+  <ellipse cx="160" cy="260" rx="130" ry="220" fill="#fdf2f8" opacity="0.35"/>
+
+  <!-- === BODY === -->
+  <!-- Dress skirt wide -->
+  <ellipse cx="160" cy="430" rx="82" ry="30" fill="#db2777" opacity="0.3"/>
+  <path d="M90 310 Q78 390 78 450 Q160 480 242 450 Q242 390 230 310 Z" fill="url(#dressGrad)"/>
+  <!-- Dress bodice -->
+  <path d="M105 230 Q100 290 98 310 L222 310 Q220 290 215 230 Z" fill="#f472b6"/>
+  <!-- White collar -->
+  <path d="M130 228 Q160 240 190 228 Q185 250 160 252 Q135 250 130 228 Z" fill="#fef3c7" opacity="0.9"/>
+  <!-- Bow on chest -->
+  <path d="M148 258 Q160 252 172 258 Q160 268 148 258 Z" fill="#fce7f3"/>
+  <circle cx="160" cy="258" r="5" fill="#f9a8d4"/>
+  <!-- Sleeves -->
+  <path d="M105 230 Q80 250 75 290 Q88 298 100 285 Q104 255 110 235 Z" fill="#f472b6"/>
+  <path d="M215 230 Q240 250 245 290 Q232 298 220 285 Q216 255 210 235 Z" fill="#f472b6"/>
+  <!-- Hands -->
+  <ellipse cx="74" cy="295" rx="14" ry="11" fill="url(#skinGlow)"/>
+  <ellipse cx="246" cy="295" rx="14" ry="11" fill="url(#skinGlow)"/>
+  <!-- Left hand holding piece gesture -->
+  <path d="M60 288 Q68 280 78 285 Q82 292 74 300 Q64 297 60 288 Z" fill="#fde8d0"/>
+
+  <!-- === NECK === -->
+  <rect x="148" y="215" width="24" height="22" rx="8" fill="url(#skinGlow)"/>
+
+  <!-- === HEAD === -->
+  <!-- Face base -->
+  <ellipse cx="160" cy="170" rx="68" ry="74" fill="url(#skinGlow)"/>
+  <!-- Jaw soften -->
+  <ellipse cx="160" cy="218" rx="44" ry="20" fill="#fde8d0"/>
+
+  <!-- === HAIR BACK === -->
+  <ellipse cx="160" cy="148" rx="74" ry="78" fill="#f0abcb"/>
+  <!-- Long hair flowing down sides -->
+  <path d="M92 148 Q72 200 68 300 Q85 310 95 290 Q102 210 108 160 Z" fill="url(#hairGrad)"/>
+  <path d="M228 148 Q248 200 252 300 Q235 310 225 290 Q218 210 212 160 Z" fill="url(#hairGrad)"/>
+  <!-- Hair back strands -->
+  <path d="M108 160 Q96 240 94 340 Q104 345 112 330 Q116 240 118 170 Z" fill="#fce7f3" opacity="0.6"/>
+  <path d="M212 160 Q224 240 226 340 Q216 345 208 330 Q204 240 202 170 Z" fill="#fce7f3" opacity="0.6"/>
+
+  <!-- === FACE FEATURES === -->
+  <!-- Eyebrows -->
+  <path d="M122 148 Q134 142 146 146" stroke="#c084a0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M174 146 Q186 142 198 148" stroke="#c084a0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Eyes - large Ghibli style -->
+  <!-- Left eye white -->
+  <ellipse cx="136" cy="163" rx="18" ry="16" fill="white"/>
+  <!-- Left iris -->
+  <ellipse cx="136" cy="165" rx="13" ry="13" fill="#c084fc"/>
+  <!-- Left pupil -->
+  <ellipse cx="136" cy="166" rx="7" ry="8" fill="#4c1d95"/>
+  <!-- Left eye shine -->
+  <ellipse cx="141" cy="160" rx="5" ry="4" fill="white" opacity="0.95"/>
+  <circle cx="132" cy="169" r="2" fill="white" opacity="0.5"/>
+  <!-- Left eyelash top -->
+  <path d="M118 155 Q136 148 154 156" stroke="#7c3a6d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M118 154 L114 150" stroke="#7c3a6d" stroke-width="2" stroke-linecap="round"/>
+  <path d="M154 155 L158 151" stroke="#7c3a6d" stroke-width="2" stroke-linecap="round"/>
+  <!-- Left lower lash -->
+  <path d="M119 172 Q136 178 153 172" stroke="#c084a0" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Right eye -->
+  <ellipse cx="184" cy="163" rx="18" ry="16" fill="white"/>
+  <ellipse cx="184" cy="165" rx="13" ry="13" fill="#c084fc"/>
+  <ellipse cx="184" cy="166" rx="7" ry="8" fill="#4c1d95"/>
+  <ellipse cx="189" cy="160" rx="5" ry="4" fill="white" opacity="0.95"/>
+  <circle cx="180" cy="169" r="2" fill="white" opacity="0.5"/>
+  <path d="M166 155 Q184 148 202 156" stroke="#7c3a6d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M166 154 L162 150" stroke="#7c3a6d" stroke-width="2" stroke-linecap="round"/>
+  <path d="M202 155 L206 151" stroke="#7c3a6d" stroke-width="2" stroke-linecap="round"/>
+  <path d="M167 172 Q184 178 201 172" stroke="#c084a0" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Nose tiny -->
+  <path d="M157 188 Q160 194 163 188" stroke="#e8a090" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Mouth smiling softly -->
+  <path d="M144 204 Q160 216 176 204" stroke="#e87090" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M144 204 Q146 208 148 206" stroke="#e87090" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M176 204 Q174 208 172 206" stroke="#e87090" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Cheek blush -->
+  <ellipse cx="116" cy="185" rx="20" ry="12" fill="url(#cheekR)"/>
+  <ellipse cx="204" cy="185" rx="20" ry="12" fill="url(#cheekR)"/>
+
+  <!-- === HAIR FRONT === -->
+  <!-- Main top hair -->
+  <path d="M92 148 Q88 100 110 72 Q136 52 160 50 Q184 52 210 72 Q232 100 228 148 Z" fill="url(#hairGrad)"/>
+  <!-- Bangs -->
+  <path d="M92 148 Q100 120 112 115 Q108 140 110 160 Z" fill="#fce7f3"/>
+  <path d="M110 115 Q118 100 130 108 Q126 132 124 155 Z" fill="#fce7f3" opacity="0.9"/>
+  <path d="M228 148 Q220 120 208 115 Q212 140 210 160 Z" fill="#fce7f3"/>
+  <path d="M208 115 Q200 100 190 108 Q194 132 196 155 Z" fill="#fce7f3" opacity="0.9"/>
+  <!-- Center part -->
+  <path d="M150 52 Q160 62 170 52" stroke="#e8b4c8" stroke-width="1.5" fill="none"/>
+  <!-- Hair accessories - small star pins -->
+  <g transform="translate(96,115)">
+    <polygon points="0,-6 1.8,-1.8 6,0 1.8,1.8 0,6 -1.8,1.8 -6,0 -1.8,-1.8" fill="#fbbf24"/>
+  </g>
+  <g transform="translate(224,115)">
+    <polygon points="0,-5 1.5,-1.5 5,0 1.5,1.5 0,5 -1.5,1.5 -5,0 -1.5,-1.5" fill="#fbbf24"/>
+  </g>
+
+  <!-- === LEGS / FEET === -->
+  <path d="M118 448 Q112 480 110 510 L130 510 Q132 480 135 448 Z" fill="#fde8d0"/>
+  <path d="M202 448 Q208 480 210 510 L190 510 Q188 480 185 448 Z" fill="#fde8d0"/>
+  <!-- Shoes -->
+  <ellipse cx="120" cy="512" rx="22" ry="9" fill="#be185d"/>
+  <ellipse cx="200" cy="512" rx="22" ry="9" fill="#be185d"/>
+  <!-- Shoe straps -->
+  <rect x="108" y="504" width="24" height="5" rx="2" fill="#9d174d"/>
+  <rect x="188" y="504" width="24" height="5" rx="2" fill="#9d174d"/>
+
+  <!-- Sparkle particles around character -->
+  <circle cx="60" cy="130" r="3" fill="#f9a8d4" opacity="0.7"/>
+  <circle cx="55" cy="150" r="2" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="265" cy="125" r="3" fill="#c084fc" opacity="0.7"/>
+  <circle cx="270" cy="148" r="2" fill="#f9a8d4" opacity="0.6"/>
+  <path d="M50 120 L54 116 L58 120 L54 124 Z" fill="#fbbf24" opacity="0.5"/>
+  <path d="M268 110 L272 106 L276 110 L272 114 Z" fill="#c084fc" opacity="0.5"/>
+</svg>

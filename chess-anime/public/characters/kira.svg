@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 520" width="320" height="520">
+  <defs>
+    <radialGradient id="kSkin" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#fddcb0"/>
+      <stop offset="100%" stop-color="#e8a870"/>
+    </radialGradient>
+    <radialGradient id="kCheek" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="kHair" x1="0%" y1="0%" x2="10%" y2="100%">
+      <stop offset="0%" stop-color="#1e1040"/>
+      <stop offset="60%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+    <linearGradient id="kRobe" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <linearGradient id="kAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Soft background halo -->
+  <ellipse cx="160" cy="260" rx="130" ry="220" fill="#eef2ff" opacity="0.25"/>
+
+  <!-- === BODY === -->
+  <!-- Robe/coat long -->
+  <path d="M82 310 Q72 400 70 460 Q160 492 250 460 Q248 400 238 310 Z" fill="url(#kRobe)"/>
+  <!-- Coat lapels / front detail -->
+  <path d="M138 230 Q160 260 182 230 Q178 290 160 295 Q142 290 138 230 Z" fill="#312e81"/>
+  <!-- Accent trim on coat -->
+  <path d="M82 310 Q76 360 74 400" stroke="url(#kAccent)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M238 310 Q244 360 246 400" stroke="url(#kAccent)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Belt sash -->
+  <rect x="100" y="295" width="120" height="18" rx="4" fill="#818cf8"/>
+  <rect x="150" y="292" width="20" height="24" rx="3" fill="#c084fc"/>
+  <!-- Coat bodice -->
+  <path d="M107 228 Q102 285 100 310 L220 310 Q218 285 213 228 Z" fill="url(#kRobe)"/>
+  <!-- Sleeves with cuffs -->
+  <path d="M107 228 Q80 248 72 292 Q86 302 100 288 Q105 252 112 232 Z" fill="#4f46e5"/>
+  <path d="M213 228 Q240 248 248 292 Q234 302 220 288 Q215 252 208 232 Z" fill="#4f46e5"/>
+  <!-- Cuffs -->
+  <path d="M72 285 Q80 298 94 295 Q88 304 74 302 Z" fill="#818cf8"/>
+  <path d="M248 285 Q240 298 226 295 Q232 304 246 302 Z" fill="#818cf8"/>
+  <!-- Hands -->
+  <ellipse cx="70" cy="298" rx="15" ry="12" fill="url(#kSkin)"/>
+  <ellipse cx="250" cy="298" rx="15" ry="12" fill="url(#kSkin)"/>
+  <!-- Right hand reaching / thinking pose (chin rest) -->
+  <path d="M240 290 Q252 288 256 296 Q252 306 242 304 Q236 296 240 290 Z" fill="#fddcb0"/>
+
+  <!-- === NECK === -->
+  <rect x="148" y="215" width="24" height="22" rx="8" fill="url(#kSkin)"/>
+  <!-- Collar high -->
+  <path d="M138 230 Q148 222 160 220 Q172 222 182 230 L178 238 Q160 232 142 238 Z" fill="#312e81"/>
+
+  <!-- === HEAD === -->
+  <ellipse cx="160" cy="168" rx="70" ry="76" fill="url(#kSkin)"/>
+  <ellipse cx="160" cy="218" rx="46" ry="20" fill="#e8a870"/>
+
+  <!-- === HAIR BACK dark === -->
+  <ellipse cx="160" cy="146" rx="76" ry="80" fill="#1e1040"/>
+  <!-- Long flowing dark hair sides -->
+  <path d="M88 148 Q64 210 60 330 Q78 340 90 318 Q96 220 106 162 Z" fill="url(#kHair)"/>
+  <path d="M232 148 Q256 210 260 330 Q242 340 230 318 Q224 220 214 162 Z" fill="url(#kHair)"/>
+  <!-- Wind-swept strand -->
+  <path d="M88 130 Q60 160 50 220 Q62 225 70 205 Q88 155 96 140 Z" fill="#312e81" opacity="0.8"/>
+
+  <!-- === FACE FEATURES === -->
+  <!-- Sharp elegant eyebrows -->
+  <path d="M118 146 Q132 138 150 143" stroke="#2d1b6b" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M170 143 Q188 138 202 146" stroke="#2d1b6b" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Eyes - narrow elegant Ghibli style -->
+  <ellipse cx="136" cy="162" rx="19" ry="14" fill="white"/>
+  <ellipse cx="136" cy="164" rx="14" ry="12" fill="#4338ca"/>
+  <ellipse cx="136" cy="165" rx="8" ry="8" fill="#1e1b4b"/>
+  <ellipse cx="142" cy="158" rx="5" ry="4" fill="white" opacity="0.9"/>
+  <circle cx="130" cy="168" r="2.5" fill="white" opacity="0.45"/>
+  <!-- Sharp eyelashes -->
+  <path d="M117 153 Q136 145 155 153" stroke="#1e1040" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M117 152 L112 147" stroke="#1e1040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M122 150 L118 144" stroke="#1e1040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M155 153 L160 148" stroke="#1e1040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M150 151 L154 146" stroke="#1e1040" stroke-width="1.8" stroke-linecap="round"/>
+
+  <ellipse cx="184" cy="162" rx="19" ry="14" fill="white"/>
+  <ellipse cx="184" cy="164" rx="14" ry="12" fill="#4338ca"/>
+  <ellipse cx="184" cy="165" rx="8" ry="8" fill="#1e1b4b"/>
+  <ellipse cx="190" cy="158" rx="5" ry="4" fill="white" opacity="0.9"/>
+  <circle cx="178" cy="168" r="2.5" fill="white" opacity="0.45"/>
+  <path d="M165 153 Q184 145 203 153" stroke="#1e1040" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M165 152 L160 147" stroke="#1e1040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M170 150 L166 144" stroke="#1e1040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M203 153 L208 148" stroke="#1e1040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M198 151 L202 146" stroke="#1e1040" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Nose refined -->
+  <path d="M156 190 Q160 197 164 190" stroke="#c8906a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+
+  <!-- Mouth confident subtle smile -->
+  <path d="M148 208 Q160 218 172 208" stroke="#c8706a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+  <!-- Cheeks subtle -->
+  <ellipse cx="114" cy="184" rx="18" ry="10" fill="url(#kCheek)"/>
+  <ellipse cx="206" cy="184" rx="18" ry="10" fill="url(#kCheek)"/>
+
+  <!-- === HAIR FRONT === -->
+  <path d="M88 148 Q84 98 108 70 Q134 48 160 46 Q186 48 212 70 Q236 98 232 148 Z" fill="#1e1040"/>
+  <!-- Swept bangs asymmetric -->
+  <path d="M88 148 Q92 108 100 96 Q96 128 100 158 Z" fill="#312e81"/>
+  <path d="M100 96 Q110 80 122 90 Q118 118 116 150 Z" fill="#2d2070"/>
+  <path d="M232 148 Q228 108 220 96 Q224 128 220 158 Z" fill="#312e81"/>
+  <!-- Longer front piece swept to side -->
+  <path d="M88 148 Q82 170 84 200 Q94 205 100 185 Q100 160 100 148 Z" fill="#312e81"/>
+  <!-- Hair accent strand with indigo highlight -->
+  <path d="M116 50 Q124 62 122 90" stroke="#818cf8" stroke-width="2" fill="none" opacity="0.6" stroke-linecap="round"/>
+
+  <!-- === ACCESSORY: Ornate hair pin === -->
+  <line x1="96" y1="110" x2="88" y2="90" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="88" cy="88" r="5" fill="#fbbf24"/>
+  <circle cx="88" cy="88" r="3" fill="#fed7aa"/>
+  <!-- Dangling chain from pin -->
+  <path d="M88 93 Q84 105 86 118" stroke="#fbbf24" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <circle cx="86" cy="120" r="3" fill="#c084fc"/>
+
+  <!-- === LEGS === -->
+  <path d="M120 458 Q115 484 112 512 L132 512 Q134 485 137 458 Z" fill="#fddcb0"/>
+  <path d="M200 458 Q205 484 208 512 L188 512 Q186 485 183 458 Z" fill="#fddcb0"/>
+  <!-- Boots dark -->
+  <path d="M108 504 Q110 516 122 516 Q134 516 134 504 Z" fill="#1e1b4b"/>
+  <path d="M186 504 Q188 516 198 516 Q210 516 212 504 Z" fill="#1e1b4b"/>
+  <rect x="108" y="498" width="26" height="8" rx="3" fill="#312e81"/>
+  <rect x="186" y="498" width="26" height="8" rx="3" fill="#312e81"/>
+
+  <!-- Floating indigo sparks -->
+  <circle cx="52" cy="140" r="3" fill="#818cf8" opacity="0.7"/>
+  <circle cx="48" cy="162" r="2" fill="#c084fc" opacity="0.6"/>
+  <circle cx="272" cy="135" r="3" fill="#818cf8" opacity="0.7"/>
+  <circle cx="276" cy="158" r="2" fill="#4338ca" opacity="0.6"/>
+  <path d="M46 125 L50 121 L54 125 L50 129 Z" fill="#818cf8" opacity="0.5"/>
+  <path d="M270 118 L274 114 L278 118 L274 122 Z" fill="#c084fc" opacity="0.5"/>
+</svg>
