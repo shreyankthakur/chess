@@ -58,13 +58,36 @@ gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
 
 7. Render will deploy the backend and provide a public URL.
 
-### Frontend (Vercel)
+### Frontend (Netlify)
 
-1. Create a new project on Vercel.
-2. Connect the same GitHub repository.
-3. Choose the `chess-anime` folder as the project root.
-4. Use the default static site settings.
-5. Deploy.
+1. Push this repository to GitHub.
+2. Create a new site on Netlify.
+3. Connect the same GitHub repository.
+4. Set the deploy folder/root to the `chess-anime` folder.
+5. Add this Netlify environment variable:
+   - `VITE_BASE_API` = `https://<your-backend>.onrender.com/api`
+6. Deploy the site.
+
+Netlify will build with `npm install && npm run build` and publish the `dist` folder.
+
+### Backend (Render)
+
+1. Push this repository to GitHub.
+2. Create a new Web Service on Render.
+3. Connect your GitHub repository and choose the `backend` folder.
+4. Render will detect `render.yaml` and use:
+   - Build command: `pip install -r requirements.txt`
+   - Start command: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`
+5. Set env vars in Render if needed (the `render.yaml` already includes `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`, and generates `DJANGO_SECRET_KEY`).
+6. Deploy the backend.
+
+Once Render is deployed, copy the backend URL and set `VITE_BASE_API` in Netlify settings.
+
+### Live link
+
+- Netlify will give you a live frontend URL you can share.
+- Render will give you a backend API URL for the frontend.
+- After you deploy both, Netlify is the shareable website link and Render is the API endpoint.
 
 ### Railway deployment
 

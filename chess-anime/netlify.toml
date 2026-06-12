@@ -1,0 +1,13 @@
+[build]
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Set the actual backend URL in Netlify site settings before deploy.
+  # Example: https://<your-backend>.onrender.com/api
+  VITE_BASE_API = "https://your-backend.onrender.com/api"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
