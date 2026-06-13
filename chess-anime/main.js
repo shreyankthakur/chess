@@ -1217,138 +1217,144 @@ applyEnvironmentMode('studio');
 applyPerformanceMode('medium');
  
 const gameModeSelect = document.getElementById('game-mode-select');
+const gameModeSelect = document.getElementById('game-mode-select');
 const onlineStatus = document.getElementById('online-status');
 const friendSearch = document.getElementById('friend-search');
 const friendSearchButton = document.getElementById('friend-search-button');
 const friendList = document.getElementById('friend-list');
 const challengeList = document.getElementById('challenge-list');
- 
+
 let onlineMode = 'pass';
-let fakeFriends = ['NovaKnight', 'PixelRook', 'QueenBlast'];
-let fakeChallenges = [];
- 
-// Simulate online players list — replace with real WebSocket/polling in production
-const SIMULATED_ONLINE = ['NovaKnight', 'PixelRook', 'QueenBlast', 'SakuraBishop', 'KiraRook'];
- 
-function makePill(content) {
-  const pill = document.createElement('div');
-  pill.className = 'online-pill';
-  pill.innerHTML = content;
-  return pill;
-}
- 
+let myColor = null; // 'w' | 'b' | null (spectator/local)
+let ws = null;
+
 function refreshOnlinePanel() {
   if (!onlineStatus || !friendList || !challengeList) return;
-  onlineStatus.textContent = onlineMode === 'pass'
-    ? 'Local pass-and-play active'
-    : 'Connected to AniChess lobby';
- 
   friendList.innerHTML = '';
-  if (onlineMode === 'online') {
-    const allPlayers = Array.from(new Set([...SIMULATED_ONLINE, ...fakeFriends]));
-    allPlayers.forEach(name => {
-      const pill = makePill(`
-        <span style="display:flex;align-items:center;gap:6px"><span class="dot"></span>${name}</span>
-        <button class="pill-challenge-btn" onclick="sendChallenge('${name}')">Challenge</button>
-      `);
-      friendList.appendChild(pill);
-    });
-  } else {
-    friendList.appendChild(makePill('<span>Switch to Online to see players</span>'));
-  }
- 
   challengeList.innerHTML = '';
-  if (fakeChallenges.length) {
-    fakeChallenges.forEach(ch => {
-      const from = typeof ch === 'object' ? ch.from : ch.replace(' challenge', '');
-      const pill = makePill(`
-        <span style="display:flex;align-items:center;gap:6px"><span class="dot challenge"></span>${from} challenges you</span>
-        <button class="pill-accept-btn" onclick="acceptChallenge('${from}')">Accept</button>
-      `);
-      challengeList.appendChild(pill);
-    });
+
+  if (onlineMode === 'pass') {
+    onlineStatus.textContent = 'Local pass-and-play active';
+    const pill = document.createElement('div');
+    pill.className = 'online-pill';
+    pill.textContent = 'Switch to Online to play with a friend';
+    friendList.appendChild(pill);
   } else {
-    challengeList.appendChild(makePill('<span>' + (onlineMode === 'online' ? 'No pending challenges' : 'Online mode off') + '</span>'));
+    if (!currentGameId) {
+      onlineStatus.textContent = 'Create or join a game to play online';
+    }
+    const pill = document.createElement('div');
+    pill.className = 'online-pill';
+    pill.textContent = myColor === 'w' ? 'You are White'
+      : myColor === 'b' ? 'You are Black'
+      : 'Spectating';
+    friendList.appendChild(pill);
   }
 }
- 
-window.sendChallenge = function(name) {
-  if (onlineStatus) onlineStatus.textContent = `Challenge sent to ${name}!`;
-  setTimeout(() => {
-    fakeChallenges = [{ from: name, type: '10+0 Blitz' }, ...fakeChallenges];
-    refreshOnlinePanel();
-    if (onlineStatus) onlineStatus.textContent = `${name} accepted your challenge!`;
-  }, 2000);
-};
- 
-window.acceptChallenge = function(name) {
-  fakeChallenges = fakeChallenges.filter(c => (typeof c === 'object' ? c.from : c) !== name);
-  if (onlineStatus) onlineStatus.textContent = `Game started vs ${name}!`;
-  // Update black player name
-  defaultCharacters.black.label = name;
-  updateCharacterUI('black', name);
-  refreshOnlinePanel();
-};
- 
- 
+
 if (gameModeSelect) {
   gameModeSelect.addEventListener('change', (e) => {
     onlineMode = e.target.value;
-    if (onlineMode === 'online') {
-      onlineStatus.textContent = 'Connecting to AniChess lobby...';
-      fakeChallenges = [];
-      setTimeout(() => {
-        onlineStatus.textContent = 'Online lobby ready';
-        refreshOnlinePanel();
-      }, 800);
-    } else {
-      onlineStatus.textContent = 'Local pass-and-play active';
-      fakeChallenges = [];
+    if (onlineMode !== 'online' && ws) {
+      ws.close();
+      ws = null;
+      currentGameId = null;
+      myColor = null;
+      if (currentGameDisplay) currentGameDisplay.textContent = 'No game connected';
     }
     refreshOnlinePanel();
   });
 }
- 
+
 if (friendSearchButton) {
   friendSearchButton.addEventListener('click', () => {
-    const name = friendSearch?.value.trim();
-    if (!name) return;
-    fakeFriends = Array.from(new Set([name, ...fakeFriends]));
-    refreshOnlinePanel();
-    if (onlineStatus) onlineStatus.textContent = `Friend request sent to ${name}`;
-    setTimeout(() => refreshOnlinePanel(), 1800);
+    if (onlineStatus) onlineStatus.textContent = 'Direct friend invites coming soon — share the Game ID instead';
   });
 }
- 
+
 refreshOnlinePanel();
- 
+
 const createGameButton = document.getElementById('create-game-button');
 const joinGameButton = document.getElementById('join-game-button');
 const gameIdInput = document.getElementById('game-id-input');
 const currentGameDisplay = document.getElementById('current-game');
- 
-// Use Vite env variable `VITE_BASE_API` in production, fallback to localhost for local dev
+
+// REST base URL
 const BASE_API = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BASE_API)
   ? import.meta.env.VITE_BASE_API
   : 'http://localhost:8000/api';
+
+// Derive WebSocket base from BASE_API (swap http(s) -> ws(s), strip trailing /api)
+function wsBaseFromApi(apiBase) {
+  const url = new URL(apiBase, window.location.origin);
+  const proto = url.protocol === 'https:' ? 'wss:' : 'ws:';
+  const path = url.pathname.replace(/\/api\/?$/, '');
+  return `${proto}//${url.host}${path}`;
+}
+const BASE_WS = wsBaseFromApi(BASE_API);
+
 let currentGameId = null;
-let pollInterval = null;
- 
+
+function connectWebSocket(gameId) {
+  if (ws) { ws.close(); ws = null; }
+
+  ws = new WebSocket(`${BASE_WS}/ws/games/${gameId}/`);
+
+  ws.onopen = () => {
+    onlineStatus.textContent = `Connected to game ${gameId} (live)`;
+  };
+
+  ws.onmessage = (event) => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+    if (msg.type !== 'state') return;
+    applyServerState(msg.data);
+  };
+
+  ws.onclose = () => {
+    onlineStatus.textContent = 'Disconnected from server';
+  };
+
+  ws.onerror = () => {
+    onlineStatus.textContent = 'WebSocket error';
+  };
+}
+
+function applyServerState(data) {
+  if (data.board_fen && data.board_fen !== chess.fen()) {
+    chess.load(data.board_fen);
+    syncBoard();
+    updateUI();
+  }
+  if (data.last_move) {
+    document.getElementById('move-log').textContent = data.san
+      ? `Last move: ${data.san}  |  ${chess.history().slice(-5).join('  ')}`
+      : `Last move: ${data.last_move}`;
+  }
+  if (typeof data.white_claimed !== 'undefined') {
+    onlineStatus.textContent = data.status === 'waiting'
+      ? `Game ${data.game_id} — waiting for opponent`
+      : `Game ${data.game_id} — ${data.status}`;
+  }
+}
+
 async function createGame() {
   try {
     const resp = await fetch(`${BASE_API}/games/`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ white_player: defaultCharacters.white.label })
+      body: JSON.stringify({})
     });
     const data = await resp.json();
     if (!resp.ok) { onlineStatus.textContent = data.detail || 'Failed to create game'; return; }
     currentGameId = data.game_id;
     if (currentGameDisplay) currentGameDisplay.textContent = `Game: ${currentGameId}`;
-    onlineStatus.textContent = `Connected to game ${currentGameId}`;
-    startPolling();
+
+    await claimColor('white');
+    connectWebSocket(currentGameId);
+    refreshOnlinePanel();
   } catch (err) { onlineStatus.textContent = 'Network error creating game'; }
 }
- 
+
 async function joinGame(gameId) {
   if (!gameId) gameId = gameIdInput?.value?.trim();
   if (!gameId) return;
@@ -1358,75 +1364,72 @@ async function joinGame(gameId) {
     const data = await resp.json();
     currentGameId = data.game_id;
     if (currentGameDisplay) currentGameDisplay.textContent = `Game: ${currentGameId}`;
-    onlineStatus.textContent = `Joined game ${currentGameId}`;
-    // Load server board state
+
     if (data.board_fen) { chess.load(data.board_fen); syncBoard(); updateUI(); }
-    startPolling();
+
+    if (!data.white_claimed) {
+      await claimColor('white');
+    } else if (!data.black_claimed) {
+      await claimColor('black');
+    } else {
+      myColor = null; // spectator
+      onlineStatus.textContent = `Spectating game ${currentGameId}`;
+    }
+
+    connectWebSocket(currentGameId);
+    refreshOnlinePanel();
   } catch (err) { onlineStatus.textContent = 'Network error joining game'; }
 }
- 
-function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(() => pollGameState(), 1500);
-  pollGameState();
-}
- 
-function stopPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = null;
-}
- 
-async function pollGameState() {
-  if (!currentGameId) return;
+
+async function claimColor(color) {
   try {
-    const resp = await fetch(`${BASE_API}/games/${currentGameId}/`);
-    if (!resp.ok) { onlineStatus.textContent = 'Disconnected from server'; stopPolling(); currentGameId = null; if (currentGameDisplay) currentGameDisplay.textContent = 'No game connected'; return; }
+    const resp = await fetch(`${BASE_API}/games/${currentGameId}/claim/`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color })
+    });
     const data = await resp.json();
-    if (data.board_fen && data.board_fen !== chess.fen()) {
-      chess.load(data.board_fen);
-      syncBoard();
-      updateUI();
+    if (!resp.ok) {
+      onlineStatus.textContent = data.detail || 'Could not claim color';
+      myColor = null;
+      return;
     }
-    if (data.last_move) document.getElementById('move-log').textContent = `Last move: ${data.last_move}`;
+    myColor = color === 'white' ? 'w' : 'b';
+    onlineStatus.textContent = `You are ${color === 'white' ? 'White' : 'Black'} — game ${currentGameId}`;
   } catch (err) {
-    onlineStatus.textContent = 'Polling error';
+    onlineStatus.textContent = 'Network error claiming color';
   }
 }
- 
+
 if (createGameButton) createGameButton.addEventListener('click', () => createGame());
 if (joinGameButton) joinGameButton.addEventListener('click', () => joinGame());
- 
+
 // Click handling
 renderer.domElement.addEventListener('click', (e) => {
   mouse.set(
-    (e.clientX / getViewW()) * 2 - 1,
-    -(e.clientY / getViewH()) * 2 + 1
+    (e.clientX / innerWidth) * 2 - 1,
+    -(e.clientY / innerHeight) * 2 + 1
   );
   raycaster.setFromCamera(mouse, camera);
- 
-  // Check piece clicks first
+
   const pieceObjects = Object.values(pieces3D).flatMap(g => {
     const meshes = [];
     g.traverse(c => { if (c.isMesh) meshes.push(c); });
     return meshes;
   });
- 
+
   const squareMeshes = Object.values(squares);
   const allTargets = [...pieceObjects, ...squareMeshes];
   const hits = raycaster.intersectObjects(allTargets, true);
- 
+
   if (!hits.length) { clearHighlights(); selectedSquare = null; return; }
- 
+
   const hit = hits[0].object;
- 
-  // Find which square was clicked
+
   let clickedSq = null;
- 
-  // Check if it's a board square
+
   const sqEntry = Object.entries(squares).find(([, m]) => m === hit);
   if (sqEntry) { clickedSq = sqEntry[0]; }
- 
-  // Check if it's a piece
+
   if (!clickedSq) {
     const pieceEntry = Object.entries(pieces3D).find(([, g]) => {
       let found = false;
@@ -1435,17 +1438,15 @@ renderer.domElement.addEventListener('click', (e) => {
     });
     if (pieceEntry) clickedSq = pieceEntry[0];
   }
- 
+
   if (!clickedSq) return;
- 
+
   if (selectedSquare) {
-    // Try to move
     if (validMoveSquares.includes(clickedSq)) {
-      // Check promotion
       const piece = chess.get(selectedSquare);
       const isPromotion = piece?.type === 'p' &&
         ((piece.color === 'w' && clickedSq[1] === '8') || (piece.color === 'b' && clickedSq[1] === '1'));
- 
+
       if (isPromotion) {
         pendingPromotion = { from: selectedSquare, to: clickedSq };
         promotionUI.style.display = 'flex';
@@ -1456,7 +1457,6 @@ renderer.domElement.addEventListener('click', (e) => {
       selectedSquare = null;
       validMoveSquares = [];
     } else {
-      // Select new piece
       clearHighlights();
       selectedSquare = null;
       validMoveSquares = [];
@@ -1466,117 +1466,74 @@ renderer.domElement.addEventListener('click', (e) => {
     trySelectPiece(clickedSq);
   }
 });
- 
+
 function trySelectPiece(sq) {
   const piece = chess.get(sq);
   if (!piece || piece.color !== chess.turn()) return;
- 
-  if (onlineMode === 'online') {
-    const status = document.getElementById('online-status');
-    if (status) status.textContent = 'Online match active — waiting for server';
+
+  if (onlineMode === 'online' && myColor && piece.color !== myColor) {
+    if (onlineStatus) onlineStatus.textContent = "It's not your turn / not your color";
+    return;
   }
- 
+
   selectedSquare = sq;
   highlightSquare(sq, 0xe879f9, 0xe879f9, 0.6);
- 
+
   validMoveSquares = chess.moves({ square: sq, verbose: true }).map(m => m.to);
   validMoveSquares.forEach(vsq => highlightSquare(vsq, 0x4ade80, 0x4ade80, 0.5));
 }
- 
+
 // ─── RENDER LOOP ──────────────────────────────────────────────────────────────
 const clock = new THREE.Clock();
- 
+
 let cameraTargetRotation = null;
 let cameraRotationTime = 0;
 let cameraRotationDuration = 0.9;
- 
+
 function rotateCameraToTarget(targetPos) {
   cameraStartPos = camera.position.clone();
   cameraTargetRotation = targetPos.clone();
   cameraRotationTime = 0;
 }
- 
+
 function updateCameraRotation(dt) {
   if (!cameraTargetRotation) return;
- 
+
   cameraRotationTime += dt;
   const progress = Math.min(1, cameraRotationTime / cameraRotationDuration);
   const ease = easeInOutSine(progress);
- 
+
   camera.position.lerpVectors(cameraStartPos, cameraTargetRotation, ease);
   camera.lookAt(0, 0, 0);
   controls.update();
- 
+
   if (progress >= 1) {
     cameraTargetRotation = null;
   }
 }
- 
+
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
- 
-  // Update animations
+
   for (let i = activeAnimations.length - 1; i >= 0; i--) {
     const done = activeAnimations[i].update(dt);
     if (done) activeAnimations.splice(i, 1);
   }
- 
-  // Ambient character idle bob
+
   const t = clock.elapsedTime;
   const whiteHead = whiteChar.userData.head;
   const blackHead = blackChar.userData.head;
   if (whiteHead) whiteHead.position.y = 1.85 + Math.sin(t * 1.2) * 0.02;
   if (blackHead) blackHead.position.y = 1.85 + Math.sin(t * 1.2 + Math.PI) * 0.02;
- 
-  // Board glow pulse
+
   boardGlow.intensity = 0.8 + Math.sin(t * 2) * 0.2;
- 
-  // Weather and environment particle effects
+
   updateWeatherParticles(dt);
- 
+
   updateCameraRotation(dt);
   if (!cameraTargetRotation) controls.update();
   renderer.render(scene, camera);
 }
- 
+
 animate();
- 
-// ─── TOUCH SUPPORT ───────────────────────────────────────────────────────────
-renderer.domElement.addEventListener('touchend', (e) => {
-  if (e.touches.length > 0) return; // still multi-touching
-  const touch = e.changedTouches[0];
-  const fakeClick = new MouseEvent('click', {
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-    bubbles: true,
-  });
-  renderer.domElement.dispatchEvent(fakeClick);
-}, { passive: true });
- 
-// ─── PICKUP PLAYER NAME FROM NAME SCREEN ────────────────────────────────────
-(function syncPlayerName() {
-  const checkName = () => {
-    if (window._playerName) {
-      defaultCharacters.white.label = window._playerName;
-      updateCharacterUI('white', window._playerName);
-      if (window._startMode) {
-        const modeEl = document.getElementById('game-mode-select');
-        if (modeEl) { modeEl.value = window._startMode; modeEl.dispatchEvent(new Event('change')); }
-      }
-    } else {
-      setTimeout(checkName, 100);
-    }
-  };
-  checkName();
-})();
- 
-// ─── TURN INDICATOR (mobile) ─────────────────────────────────────────────────
-function updateMobileTurn() {
-  const el = document.getElementById('turn-indicator');
-  if (el) el.textContent = chess.turn() === 'w' ? '◀ White' : 'Black ▶';
-}
-// Patch updateUI to also call updateMobileTurn
-const _origUpdateUI = updateUI;
-window.updateUI = function() { _origUpdateUI(); updateMobileTurn(); };
-updateMobileTurn();

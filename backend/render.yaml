@@ -1,4 +1,3 @@
-# Render service definition for Django backend
 services:
   - type: web_service
     name: chess-anime-backend
@@ -6,13 +5,13 @@ services:
     region: oregon
     plan: starter
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT config.asgi:application"
     envVars:
       - key: DJANGO_DEBUG
         value: '0'
       - key: DJANGO_SECRET_KEY
         generator: secret
       - key: DJANGO_ALLOWED_HOSTS
-        value: '*' 
+        value: '*'
       - key: PORT
         value: '10000'

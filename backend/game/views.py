@@ -2,10 +2,23 @@ from rest_framework import status, views
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 import chess
 
 from .models import ChessGame
-from .serializers import ChessGameSerializer, ChessMoveSerializer
+from .serializers import ChessGameSerializer, ChessMoveSerializer, ClaimColorSerializer
+
+
+def broadcast_game_state(game_id, data):
+	channel_layer = get_channel_layer()
+	if channel_layer is None:
+		return
+	async_to_sync(channel_layer.group_send)(
+		f'game_{game_id}',
+		{'type': 'game_update', 'data': data}
+	)
+
 
 class CreateGameView(views.APIView):
 	def post(self, request):
@@ -16,6 +29,8 @@ class CreateGameView(views.APIView):
 			game_id=game_id,
 			white_player=white_player,
 			black_player=black_player,
+			white_claimed=bool(white_player),
+			black_claimed=bool(black_player),
 			board_fen=chess.Board().fen(),
 			turn='w',
 			status='waiting',
@@ -24,11 +39,43 @@ class CreateGameView(views.APIView):
 		serializer = ChessGameSerializer(game)
 		return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 class GameDetailView(views.APIView):
 	def get(self, request, game_id):
 		game = get_object_or_404(ChessGame, game_id=game_id)
 		serializer = ChessGameSerializer(game)
 		return Response(serializer.data)
+
+
+class ClaimColorView(views.APIView):
+	def post(self, request, game_id):
+		game = get_object_or_404(ChessGame, game_id=game_id)
+		serializer = ClaimColorSerializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+		color = serializer.validated_data['color']
+		player_name = serializer.validated_data.get('player_name', '')
+
+		if color == 'white':
+			if game.white_claimed:
+				return Response({'detail': 'White already taken'}, status=status.HTTP_409_CONFLICT)
+			game.white_claimed = True
+			if player_name:
+				game.white_player = player_name
+		else:
+			if game.black_claimed:
+				return Response({'detail': 'Black already taken'}, status=status.HTTP_409_CONFLICT)
+			game.black_claimed = True
+			if player_name:
+				game.black_player = player_name
+
+		if game.white_claimed and game.black_claimed and game.status == 'waiting':
+			game.status = 'active'
+
+		game.save()
+		data = ChessGameSerializer(game).data
+		broadcast_game_state(game.game_id, data)
+		return Response(data)
+
 
 class MakeMoveView(views.APIView):
 	def post(self, request, game_id):
@@ -50,7 +97,6 @@ class MakeMoveView(views.APIView):
 		if move not in board.legal_moves:
 			return Response({'detail': 'Illegal move.'}, status=status.HTTP_400_BAD_REQUEST)
 
-		# Prepare metadata about the move before applying it
 		san = board.san(move)
 		is_capture = board.is_capture(move)
 		from_sq = chess.square_name(move.from_square)
@@ -60,7 +106,6 @@ class MakeMoveView(views.APIView):
 		if move.promotion:
 			promotion_letter = chess.piece_symbol(move.promotion)
 
-		# detect castling
 		is_castle = False
 		castle_side = ''
 		piece_from_type = board.piece_type_at(move.from_square)
@@ -95,7 +140,10 @@ class MakeMoveView(views.APIView):
 			'promotion': promotion_letter,
 			'color': move_color,
 		})
+
+		broadcast_game_state(game.game_id, resp)
 		return Response(resp)
+
 
 class ResetGameView(views.APIView):
 	def post(self, request, game_id):
@@ -103,7 +151,9 @@ class ResetGameView(views.APIView):
 		board = chess.Board()
 		game.board_fen = board.fen()
 		game.turn = 'w'
-		game.status = 'waiting'
+		game.status = 'active' if (game.white_claimed and game.black_claimed) else 'waiting'
 		game.last_move = ''
 		game.save()
-		return Response(ChessGameSerializer(game).data)
+		data = ChessGameSerializer(game).data
+		broadcast_game_state(game.game_id, data)
+		return Response(data)
