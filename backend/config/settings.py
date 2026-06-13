@@ -57,11 +57,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+# Channels channel layer: use Redis for cross-process broadcasting.
+# Set REDIS_URL env var in production (e.g. redis://redis:6379/0 or redis://:password@host:6379/0)
+# Channels channel layer
+# In production you MUST set REDIS_URL, otherwise group messaging won't work correctly.
+redis_url = os.getenv("REDIS_URL")
+if not redis_url:
+    if not DEBUG:
+        raise RuntimeError("REDIS_URL is required in production for Django Channels (channels_redis).")
+    redis_url = "redis://127.0.0.1:6379/0"
+
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    }
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [redis_url],
+        },
+    },
 }
+
 
 import dj_database_url
 
