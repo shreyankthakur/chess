@@ -1,277 +1,490 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Photo Chess</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AniChess</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a1a; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #08091a; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; touch-action: none; }
     canvas { display: block; }
-
-    #ui-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; z-index: 10;
+ 
+    /* ─── NAME ENTRY SCREEN ─── */
+    #name-screen {
+      position: fixed; inset: 0; z-index: 200;
+      background: radial-gradient(ellipse at 60% 40%, #1a0d3b 0%, #08091a 70%);
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      gap: 0;
     }
-
+    #name-screen.hidden { display: none; }
+ 
+    .ns-card {
+      background: rgba(15,12,40,0.97);
+      border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 28px;
+      padding: 40px 44px;
+      width: min(420px, 92vw);
+      display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 32px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(232,121,249,0.08);
+    }
+    .ns-logo {
+      font-size: 2rem; font-weight: 900; letter-spacing: 4px;
+      background: linear-gradient(90deg, #e879f9, #818cf8, #38bdf8);
+      background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-transform: uppercase; text-align: center;
+    }
+    .ns-subtitle { text-align: center; color: #94a3b8; font-size: 0.82rem; letter-spacing: 1px; }
+    .ns-label { color: #c4b5fd; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; }
+    .ns-input {
+      width: 100%; border-radius: 14px; border: 1.5px solid rgba(99,102,241,0.35);
+      background: rgba(20,18,55,0.95); color: #eef2ff;
+      padding: 13px 16px; font-size: 1rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .ns-input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,0.18); }
+    .ns-play-btn {
+      width: 100%; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: #fff; padding: 14px; font-size: 1rem; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+    }
+    .ns-play-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,58,237,0.55); }
+    .ns-play-btn:active { transform: translateY(0); }
+    .ns-divider { height: 1px; background: rgba(99,102,241,0.2); }
+    .ns-mode-row { display: flex; gap: 10px; }
+    .ns-mode-btn {
+      flex: 1; border-radius: 12px; border: 1.5px solid rgba(99,102,241,0.3);
+      background: rgba(20,18,55,0.9); color: #a5b4fc;
+      padding: 10px; font-size: 0.82rem; cursor: pointer;
+      transition: all 0.18s; text-align: center;
+    }
+    .ns-mode-btn.active { border-color: #7c3aed; background: rgba(124,58,237,0.25); color: #e879f9; }
+ 
+    /* ─── TITLE BAR ─── */
     #title-bar {
       position: fixed; top: 0; left: 0; right: 0;
-      background: rgba(6, 6, 24, 0.86);
-      backdrop-filter: blur(12px);
-      padding: 16px 24px;
+      background: rgba(6,6,24,0.9);
+      backdrop-filter: blur(16px);
+      padding: 0 16px;
+      height: 56px;
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+      border-bottom: 1px solid rgba(124,58,237,0.2);
+      z-index: 30;
     }
     #title-bar h1 {
-      font-size: 1.4rem; font-weight: 700; letter-spacing: 3px;
+      font-size: 1.1rem; font-weight: 800; letter-spacing: 3px;
       background: linear-gradient(90deg, #e879f9, #818cf8);
-      background-clip: text;
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       text-transform: uppercase;
     }
     #turn-badge {
-      padding: 6px 18px; border-radius: 20px;
+      padding: 5px 14px; border-radius: 20px;
       background: linear-gradient(90deg, #7c3aed, #4f46e5);
-      color: #fff; font-size: 0.8rem; letter-spacing: 2px;
-      text-transform: uppercase; font-weight: 600;
-      pointer-events: none;
+      color: #fff; font-size: 0.72rem; letter-spacing: 2px;
+      text-transform: uppercase; font-weight: 700;
     }
-
-    #status-bar {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: rgba(8, 10, 26, 0.92);
-      backdrop-filter: blur(10px);
-      padding: 18px 26px;
-      display: flex; align-items: center; justify-content: space-between;
-      border-top: 1px solid rgba(99, 102, 241, 0.18);
+    #menu-btn {
+      display: none; background: none; border: none;
+      color: #a5b4fc; font-size: 1.5rem; cursor: pointer; padding: 4px 8px;
     }
-
-    #move-log {
-      font-size: 0.78rem; color: #e5e7ff; letter-spacing: 1px;
-      max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    @media (max-width: 768px) {
+      #menu-btn { display: block; }
     }
-
-    #controls-hint {
-      font-size: 0.75rem; color: #9ca3af; letter-spacing: 1px;
+ 
+    /* ─── SIDE PANELS (left) ─── */
+    #left-panels {
+      position: fixed; top: 56px; left: 0; bottom: 60px;
+      width: 240px;
+      display: flex; flex-direction: column; gap: 0;
+      overflow-y: auto; overflow-x: hidden;
+      z-index: 20;
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
     }
-
-    #game-message {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(79,70,229,0.95));
-      color: #fff; padding: 24px 48px; border-radius: 16px;
-      font-size: 1.6rem; font-weight: 700; letter-spacing: 3px;
-      text-transform: uppercase; display: none;
-      border: 1px solid rgba(232,121,249,0.4);
-      box-shadow: 0 0 60px rgba(124,58,237,0.6);
-      pointer-events: all; cursor: pointer; text-align: center;
+    #left-panels::-webkit-scrollbar { width: 4px; }
+    #left-panels::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 4px; }
+ 
+    @media (max-width: 768px) {
+      #left-panels {
+        transform: translateX(-100%);
+        background: rgba(6,6,24,0.98);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(99,102,241,0.2);
+      }
+      #left-panels.open { transform: translateX(0); }
     }
-    #game-message span { display: block; font-size: 0.8rem; margin-top: 8px; opacity: 0.7; letter-spacing: 2px; }
-
-    #piece-selector {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(8,12,28,0.96); border: 1px solid rgba(79,70,229,0.35);
-      border-radius: 20px; padding: 24px; display: none;
-      flex-direction: column; align-items: center; gap: 16px;
-      pointer-events: all; z-index: 100;
-      box-shadow: 0 24px 88px rgba(0,0,0,0.3);
-    }
-    #piece-selector h3 { color: #c4b5fd; font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; }
-    #piece-selector .pieces { display: flex; gap: 14px; }
-    #piece-selector button {
-      background: #1b1a44; border: 1px solid rgba(79,70,229,0.35); color: #f8c4ff;
-      font-size: 2rem; width: 64px; height: 64px; border-radius: 14px;
-      cursor: pointer; transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-    }
-    #piece-selector button:hover { background: #4f46e5; transform: scale(1.1); }
-
-    #environment-panel {
-      position: fixed; top: 86px; left: 24px;
-      background: linear-gradient(180deg, rgba(10,12,30,0.98), rgba(15,17,38,0.96));
-      border: 1px solid rgba(99,102,241,0.30);
-      border-radius: 20px; padding: 18px 18px;
-      display: flex; flex-direction: column; gap: 12px;
-      z-index: 20; pointer-events: all;
-      width: 230px;
-      box-shadow: 0 26px 80px rgba(0,0,0,0.28);
-    }
-    #environment-panel .panel-title {
-      font-size: 0.75rem; color: #a5b4fc;
-      text-transform: uppercase; letter-spacing: 1px;
-    }
-    #environment-panel select {
-      width: 100%; border-radius: 12px; border: 1px solid #4f46e5;
-      background: rgba(15,15,40,0.98); color: #eef2ff;
-      padding: 10px 12px; font-size: 0.9rem;
-    }
-    #online-panel {
-      position: fixed; top: 320px; left: 24px;
-      background: linear-gradient(180deg, rgba(10,12,30,0.98), rgba(15,17,38,0.96));
-      border: 1px solid rgba(99,102,241,0.30);
-      border-radius: 20px; padding: 18px 18px;
-      display: flex; flex-direction: column; gap: 12px;
-      z-index: 20; pointer-events: all;
-      width: 230px;
-      box-shadow: 0 26px 80px rgba(0,0,0,0.28);
-    }
-    #online-panel .panel-title {
-      font-size: 0.75rem; color: #a5b4fc;
-      text-transform: uppercase; letter-spacing: 1px;
-    }
-    #online-panel select,
-    #online-panel input {
-      width: 100%; border-radius: 12px; border: 1px solid #4f46e5;
-      background: rgba(15,15,40,0.98); color: #eef2ff;
-      padding: 10px 12px; font-size: 0.9rem;
-    }
-    #online-panel input {
-      outline: none;
-    }
-    #online-panel button {
-      border-radius: 12px; border: 1px solid #4f46e5;
-      background: #1f1c4d; color: #eef2ff; padding: 10px 12px;
-      cursor: pointer; font-size: 0.9rem; transition: transform 0.2s, background 0.2s;
-    }
-    #online-panel button:hover { background: #4f46e5; transform: translateY(-1px); }
-    #online-panel .online-row { display: flex; gap: 10px; }
-    #online-panel .online-list {
-      min-height: 70px; padding: 10px; background: rgba(79,70,229,0.08);
-      border-radius: 12px; color: #eef2ff; font-size: 0.82rem;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    #online-status {
-      padding: 10px; background: rgba(99,102,241,0.14); border-radius: 12px;
-      color: #dbeafe; font-size: 0.85rem;
-    }
-    .online-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(79,70,229,0.2); font-size: 0.75rem; color: #eef2ff; }
-    .online-row input { flex: 1; }
-    #online-panel .panel-note { background: rgba(79,70,229,0.08); }
-    #character-select-panel {
-      position: fixed; top: 90px; right: 20px;
-      display: flex; gap: 12px; pointer-events: all; z-index: 20;
-    }
-    .char-select-card {
-      background: rgba(15,15,40,0.92); border: 1px solid rgba(99,102,241,0.35);
-      border-radius: 16px; padding: 16px; width: 170px;
+ 
+    .panel {
+      background: linear-gradient(180deg, rgba(10,12,30,0.98), rgba(14,16,36,0.97));
+      border-bottom: 1px solid rgba(99,102,241,0.12);
+      padding: 16px;
       display: flex; flex-direction: column; gap: 10px;
     }
-    .char-select-title {
-      font-size: 0.75rem; color: #a5b4fc;
-      letter-spacing: 1px; text-transform: uppercase;
+    .panel-title {
+      font-size: 0.68rem; color: #818cf8;
+      text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
     }
-    .char-select-name {
-      font-size: 1rem; color: #eef2ff; font-weight: 700;
-      min-height: 24px;
+    .panel select, .panel input {
+      width: 100%; border-radius: 10px; border: 1px solid rgba(79,70,229,0.4);
+      background: rgba(15,15,40,0.98); color: #eef2ff;
+      padding: 9px 11px; font-size: 0.85rem; outline: none;
     }
-    .char-button {
-      width: 100%; border-radius: 12px; border: 1px solid #4f46e5;
-      background: #1f1c4d; color: #ede9fe; padding: 10px 12px;
-      cursor: pointer; font-size: 0.9rem; transition: transform 0.2s, background 0.2s;
+    .panel input { transition: border-color 0.2s; }
+    .panel input:focus { border-color: #818cf8; }
+    .panel-btn {
+      border-radius: 10px; border: 1px solid rgba(79,70,229,0.4);
+      background: rgba(31,28,77,0.9); color: #eef2ff;
+      padding: 9px 12px; cursor: pointer; font-size: 0.82rem;
+      transition: background 0.18s, transform 0.15s; text-align: center;
     }
-    .char-button:hover { background: #4f46e5; transform: translateY(-1px); }
-    .char-button.char-static { cursor: default; opacity: 0.8; pointer-events: none; }
-    .char-button.char-static:hover { transform: none; background: #1f1c4d; }
-
+    .panel-btn:hover { background: rgba(79,70,229,0.7); transform: translateY(-1px); }
+    .panel-btn.primary { background: linear-gradient(135deg, #7c3aed, #4f46e5); border-color: transparent; }
+    .panel-btn.primary:hover { background: linear-gradient(135deg, #9333ea, #6366f1); }
+    .btn-row { display: flex; gap: 8px; }
+    .btn-row .panel-btn { flex: 1; }
+    #online-status {
+      padding: 9px 11px; background: rgba(99,102,241,0.12); border-radius: 10px;
+      color: #dbeafe; font-size: 0.78rem; line-height: 1.4;
+    }
+    .online-list {
+      min-height: 60px; padding: 8px; background: rgba(79,70,229,0.07);
+      border-radius: 10px; color: #eef2ff; font-size: 0.78rem;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .online-pill {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 10px; border-radius: 20px;
+      background: rgba(79,70,229,0.18); font-size: 0.72rem; color: #eef2ff;
+    }
+    .online-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
+    .online-pill .dot.challenge { background: #f472b6; }
+    .pill-challenge-btn {
+      font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;
+      border: 1px solid rgba(232,121,249,0.5);
+      background: rgba(232,121,249,0.15); color: #f9a8d4;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .pill-challenge-btn:hover { background: rgba(232,121,249,0.35); }
+    .pill-accept-btn {
+      font-size: 0.65rem; padding: 2px 8px; border-radius: 20px;
+      border: 1px solid rgba(74,222,128,0.5);
+      background: rgba(74,222,128,0.15); color: #86efac;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .pill-accept-btn:hover { background: rgba(74,222,128,0.35); }
+    #current-game { font-size: 0.75rem; color: #94a3b8; }
+ 
+    /* ─── RIGHT SIDE: player name cards ─── */
+    #right-panels {
+      position: fixed; top: 56px; right: 0;
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 12px;
+      z-index: 20; pointer-events: none;
+    }
+    @media (max-width: 768px) {
+      #right-panels { display: none; }
+    }
     .char-card {
-      position: fixed; bottom: 70px;
-      background: rgba(6, 8, 24, 0.92); border-radius: 16px;
-      padding: 14px 20px; color: #fff; min-width: 150px;
+      background: rgba(6,8,24,0.92); border-radius: 14px;
+      padding: 12px 16px; color: #fff; min-width: 140px;
       border: 1px solid rgba(99,102,241,0.3);
       backdrop-filter: blur(8px);
-      box-shadow: 0 20px 70px rgba(0,0,0,0.28);
     }
-    #card-white { left: 20px; border-color: rgba(232,121,249,0.4); }
-    #card-black { right: 20px; border-color: rgba(129,140,248,0.4); }
-    .char-name { font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
-    .char-side { font-size: 0.65rem; opacity: 0.6; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+    #card-white { border-color: rgba(232,121,249,0.4); }
+    #card-black { border-color: rgba(129,140,248,0.4); }
+    .char-name { font-size: 0.82rem; font-weight: 700; letter-spacing: 1px; }
+    .char-side { font-size: 0.62rem; opacity: 0.6; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
     #card-white .char-name { color: #f9a8d4; }
     #card-black .char-name { color: #818cf8; }
+ 
+    /* ─── BOTTOM STATUS BAR ─── */
+    #status-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(8,10,26,0.94);
+      backdrop-filter: blur(12px);
+      padding: 0 16px;
+      height: 50px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(99,102,241,0.15);
+      z-index: 30;
+    }
+    #move-log {
+      font-size: 0.72rem; color: #e5e7ff; letter-spacing: 1px;
+      max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    #controls-hint { font-size: 0.68rem; color: #9ca3af; letter-spacing: 0.5px; }
+    @media (max-width: 480px) {
+      #controls-hint { display: none; }
+    }
+ 
+    /* ─── MOBILE PLAYER BADGES ─── */
+    #mobile-badges {
+      display: none;
+      position: fixed; bottom: 50px; left: 0; right: 0;
+      padding: 8px 12px;
+      background: rgba(6,8,24,0.85);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(99,102,241,0.12);
+      flex-direction: row; justify-content: space-between; align-items: center;
+      z-index: 25;
+    }
+    @media (max-width: 768px) {
+      #mobile-badges { display: flex; }
+      #status-bar { bottom: 84px; }
+    }
+    .mb-player {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mb-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #fff;
+    }
+    .mb-info { display: flex; flex-direction: column; }
+    .mb-name { font-size: 0.75rem; font-weight: 700; color: #eef2ff; }
+    .mb-side { font-size: 0.6rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+ 
+    /* ─── GAME MESSAGE ─── */
+    #game-message {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, rgba(124,58,237,0.97), rgba(79,70,229,0.97));
+      color: #fff; padding: 24px 40px; border-radius: 20px;
+      font-size: 1.4rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; display: none;
+      border: 1px solid rgba(232,121,249,0.4);
+      box-shadow: 0 0 80px rgba(124,58,237,0.7);
+      pointer-events: all; cursor: pointer; text-align: center;
+      z-index: 100;
+    }
+    #game-message span { display: block; font-size: 0.78rem; margin-top: 8px; opacity: 0.7; letter-spacing: 2px; }
+ 
+    /* ─── PIECE SELECTOR ─── */
+    #piece-selector {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(8,12,28,0.98); border: 1px solid rgba(79,70,229,0.4);
+      border-radius: 20px; padding: 22px; display: none;
+      flex-direction: column; align-items: center; gap: 14px;
+      pointer-events: all; z-index: 110;
+      box-shadow: 0 24px 88px rgba(0,0,0,0.4);
+    }
+    #piece-selector h3 { color: #c4b5fd; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; }
+    #piece-selector .pieces { display: flex; gap: 12px; }
+    #piece-selector button {
+      background: #1b1a44; border: 1px solid rgba(79,70,229,0.4); color: #f8c4ff;
+      font-size: 2.2rem; width: 64px; height: 64px; border-radius: 14px;
+      cursor: pointer; transition: transform 0.18s, background 0.18s;
+    }
+    #piece-selector button:hover { background: #4f46e5; transform: scale(1.12); }
+ 
+    /* ─── OVERLAY BACKDROP (mobile menu) ─── */
+    #panel-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 19;
+    }
+    #panel-backdrop.open { display: block; }
   </style>
 </head>
 <body>
-  <div id="ui-overlay">
-    <div id="title-bar">
-      <h1>⚔ Photo Chess</h1>
-      <div id="turn-badge">White's Turn</div>
+ 
+<!-- ─── NAME ENTRY SCREEN ─── -->
+<div id="name-screen">
+  <div class="ns-card">
+    <div class="ns-logo">⚔ AniChess</div>
+    <div class="ns-subtitle">Anime-style 3D chess with online play</div>
+    <div class="ns-divider"></div>
+    <label class="ns-label">Your Name</label>
+    <input class="ns-input" id="ns-name-input" placeholder="Enter your name..." maxlength="20" autocomplete="off" />
+    <div class="ns-label">Game Mode</div>
+    <div class="ns-mode-row">
+      <div class="ns-mode-btn active" data-mode="pass" onclick="selectMode(this)">🏠 Pass &amp; Play</div>
+      <div class="ns-mode-btn" data-mode="online" onclick="selectMode(this)">🌐 Online</div>
     </div>
-
-    <div class="char-card" id="card-white">
-      <div class="char-name">Player 1</div>
-      <div class="char-side">⬜ Default portrait loaded</div>
+    <button class="ns-play-btn" onclick="startGame()">⚡ Play Now</button>
+  </div>
+</div>
+ 
+<!-- ─── BACKDROP ─── -->
+<div id="panel-backdrop" onclick="closePanels()"></div>
+ 
+<!-- ─── TITLE BAR ─── -->
+<div id="title-bar">
+  <button id="menu-btn" onclick="togglePanels()">☰</button>
+  <h1>⚔ AniChess</h1>
+  <div id="turn-badge">White's Turn</div>
+</div>
+ 
+<!-- ─── LEFT PANELS ─── -->
+<div id="left-panels">
+ 
+  <!-- Environment -->
+  <div class="panel">
+    <div class="panel-title">🎨 Scene</div>
+    <select id="background-select">
+      <option value="studio">Studio</option>
+      <option value="sunny">Sunny</option>
+      <option value="rain">Rain</option>
+      <option value="snow">Snow</option>
+    </select>
+    <select id="performance-select">
+      <option value="high">High Quality</option>
+      <option value="medium" selected>Medium</option>
+      <option value="low">Low (Mobile)</option>
+    </select>
+  </div>
+ 
+  <!-- Online -->
+  <div class="panel">
+    <div class="panel-title">🌐 Lobby</div>
+    <select id="game-mode-select">
+      <option value="pass">Pass &amp; Play</option>
+      <option value="online">Online Match</option>
+    </select>
+    <div id="online-status">Local pass-and-play active</div>
+    <div class="btn-row">
+      <button class="panel-btn primary" id="create-game-button">Create</button>
+      <input id="game-id-input" placeholder="Game ID" style="flex:1;min-width:0" />
+      <button class="panel-btn" id="join-game-button">Join</button>
     </div>
-    <div id="environment-panel">
-      <div class="panel-title">Scene Environment</div>
-      <select id="background-select">
-        <option value="studio">Studio</option>
-        <option value="sunny">Sunny</option>
-        <option value="rain">Rain</option>
-        <option value="snow">Snow</option>
-      </select>
-      <div class="panel-title">Performance</div>
-      <select id="performance-select">
-        <option value="high">High</option>
-        <option value="medium" selected>Medium</option>
-        <option value="low">Low</option>
-      </select>
-      <div class="panel-note">Select an environment and let the seated strategist take in heavy rain, snow, or bright sun.</div>
+    <div id="current-game">No game connected</div>
+  </div>
+ 
+  <!-- Online Players -->
+  <div class="panel">
+    <div class="panel-title">👥 Online Players</div>
+    <div class="btn-row">
+      <input id="friend-search" placeholder="Search player..." />
+      <button class="panel-btn" id="friend-search-button">🔍</button>
     </div>
-
-    <div id="online-panel">
-      <div class="panel-title">Online Lobby</div>
-      <select id="game-mode-select">
-        <option value="pass">Pass & Play</option>
-        <option value="online">Online Match</option>
-      </select>
-      <div class="panel-title">Online Status</div>
-      <div id="online-status">Local pass-and-play active</div>
-      <div class="panel-title">Friend Search</div>
-      <div class="online-row">
-        <input id="friend-search" placeholder="Search username..." />
-        <button id="friend-search-button">Search</button>
-      </div>
-      <div class="panel-title">Match</div>
-      <div class="online-row">
-        <button id="create-game-button">Create Game</button>
-        <input id="game-id-input" placeholder="Game ID" />
-        <button id="join-game-button">Join</button>
-      </div>
-      <div id="current-game" class="panel-note">No game connected</div>
-      <div id="friend-list" class="online-list">
-        <div class="online-pill">No friends yet</div>
-      </div>
-      <div class="panel-title">Incoming Challenges</div>
-      <div id="challenge-list" class="online-list">
-        <div class="online-pill">No active challenges</div>
-      </div>
-      <div class="panel-note">Online flow is ready for server hookup: friend requests, challenge invites, and match setup.</div>
-    </div>
-
-    <div class="char-card" id="card-black">
-      <div class="char-name">Player 2</div>
-      <div class="char-side">⬛ Default portrait loaded</div>
-    </div>
-
-    <div id="status-bar">
-      <div id="move-log">Click a piece to start playing</div>
-      <div id="controls-hint">🖱 Drag to rotate · Scroll to zoom</div>
+    <div id="friend-list" class="online-list">
+      <div class="online-pill"><span>No players yet</span></div>
     </div>
   </div>
-
-  <div id="game-message">
-    <div id="msg-text">Check!</div>
-    <span id="msg-sub">Click to continue</span>
-  </div>
-
-  <div id="piece-selector">
-    <h3>Promote Pawn To</h3>
-    <div class="pieces">
-      <button data-piece="q">♛</button>
-      <button data-piece="r">♜</button>
-      <button data-piece="b">♝</button>
-      <button data-piece="n">♞</button>
+ 
+  <!-- Challenges -->
+  <div class="panel">
+    <div class="panel-title">⚡ Challenges</div>
+    <div id="challenge-list" class="online-list">
+      <div class="online-pill"><span>No challenges</span></div>
     </div>
   </div>
-
-  <script type="module" src="/main.js"></script>
+ 
+</div>
+ 
+<!-- ─── RIGHT PANELS (desktop) ─── -->
+<div id="right-panels">
+  <div class="char-card" id="card-white">
+    <div class="char-name" id="name-white">Player 1</div>
+    <div class="char-side">⬜ White</div>
+  </div>
+  <div class="char-card" id="card-black">
+    <div class="char-name" id="name-black">Player 2</div>
+    <div class="char-side">⬛ Black</div>
+  </div>
+</div>
+ 
+<!-- ─── MOBILE PLAYER BADGES ─── -->
+<div id="mobile-badges">
+  <div class="mb-player">
+    <div class="mb-avatar" id="mb-avatar-white">P1</div>
+    <div class="mb-info">
+      <div class="mb-name" id="mb-name-white">Player 1</div>
+      <div class="mb-side">⬜ White</div>
+    </div>
+  </div>
+  <div id="turn-indicator" style="font-size:0.7rem;color:#a5b4fc;font-weight:700;letter-spacing:1px;"></div>
+  <div class="mb-player">
+    <div class="mb-avatar" id="mb-avatar-black" style="background:linear-gradient(135deg,#db2777,#9333ea)">P2</div>
+    <div class="mb-info">
+      <div class="mb-name" id="mb-name-black">Player 2</div>
+      <div class="mb-side">⬛ Black</div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ─── STATUS BAR ─── -->
+<div id="status-bar">
+  <div id="move-log">Click a piece to start</div>
+  <div id="controls-hint">🖱 Drag·Scroll to zoom · Tap piece to move</div>
+</div>
+ 
+<!-- ─── GAME MESSAGE ─── -->
+<div id="game-message">
+  <div id="msg-text">Check!</div>
+  <span id="msg-sub">Click to continue</span>
+</div>
+ 
+<!-- ─── PIECE SELECTOR ─── -->
+<div id="piece-selector">
+  <h3>Promote Pawn To</h3>
+  <div class="pieces">
+    <button data-piece="q">♛</button>
+    <button data-piece="r">♜</button>
+    <button data-piece="b">♝</button>
+    <button data-piece="n">♞</button>
+  </div>
+</div>
+ 
+<script>
+  // ─── NAME SCREEN LOGIC ───
+  let selectedGameMode = 'pass';
+ 
+  function selectMode(el) {
+    document.querySelectorAll('.ns-mode-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedGameMode = el.dataset.mode;
+  }
+ 
+  function startGame() {
+    const name = document.getElementById('ns-name-input').value.trim() || 'Player';
+    window._playerName = name;
+    window._startMode = selectedGameMode;
+ 
+    // Update all name displays
+    document.getElementById('name-white').textContent = name;
+    document.getElementById('mb-name-white').textContent = name;
+    document.getElementById('mb-avatar-white').textContent = name.slice(0,2).toUpperCase();
+ 
+    // Set game mode dropdown
+    const modeSelect = document.getElementById('game-mode-select');
+    if (modeSelect) modeSelect.value = selectedGameMode;
+ 
+    // Hide name screen
+    document.getElementById('name-screen').classList.add('hidden');
+  }
+ 
+  // Allow Enter key in name input
+  document.getElementById('ns-name-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startGame();
+  });
+ 
+  // ─── MOBILE MENU ───
+  function togglePanels() {
+    const panels = document.getElementById('left-panels');
+    const backdrop = document.getElementById('panel-backdrop');
+    const isOpen = panels.classList.contains('open');
+    panels.classList.toggle('open', !isOpen);
+    backdrop.classList.toggle('open', !isOpen);
+  }
+ 
+  function closePanels() {
+    document.getElementById('left-panels').classList.remove('open');
+    document.getElementById('panel-backdrop').classList.remove('open');
+  }
+ 
+  // Close panels on nav to other area
+  document.addEventListener('click', e => {
+    const panels = document.getElementById('left-panels');
+    if (panels.classList.contains('open') &&
+        !panels.contains(e.target) &&
+        e.target.id !== 'menu-btn') {
+      closePanels();
+    }
+  }, true);
+</script>
+ 
+<script type="module" src="/main.js"></script>
 </body>
 </html>
