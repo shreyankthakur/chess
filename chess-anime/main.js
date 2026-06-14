@@ -377,91 +377,161 @@ function updateWeatherParticles(dt) {
  
 // ─── PIECE SHAPES ─────────────────────────────────────────────────────────────
 function makePieceGeometry(type) {
+  // More premium procedural silhouettes (still fast because we reuse primitive building blocks).
   const group = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, 0.15, 24), null);
-  base.position.y = 0.075;
-  group.add(base);
- 
+
+  const detail = currentPerformance === 'high' ? 1.0 : currentPerformance === 'low' ? 0.75 : 0.9;
+  const seg = (n) => Math.max(8, Math.round(n * detail));
+
+  // Base / pedestal (slightly beveled)
+  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.52, 0.18, seg(28)), null);
+  pedestal.position.y = 0.075;
+  group.add(pedestal);
+
+  const baseBevel = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.03, seg(14), 24), null);
+  baseBevel.rotation.x = Math.PI / 2;
+  baseBevel.position.y = 0.16;
+  group.add(baseBevel);
+
+  const rim = (r, h, y, s = seg(22)) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.02, r * 0.98, h, s), null);
+    m.position.y = y;
+    return m;
+  };
+
   if (type === 'p') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.26, 0.48, 24), null);
-    body.position.y = 0.42;
-    group.add(body);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), null);
-    head.position.y = 0.8;
+    // Pawn: slimmer neck + more rounded head
+    group.add(rim(0.23, 0.50, 0.45));
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.25, 0.14, seg(24)), null);
+    collar.position.y = 0.86;
+    group.add(collar);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, seg(26), seg(18)), null);
+    head.position.y = 1.06;
     group.add(head);
   } else if (type === 'r') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.78, 24), null);
-    body.position.y = 0.48;
-    group.add(body);
-    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.18, 24), null);
-    top.position.y = 0.96;
+    // Rook: crenellations + sharper top caps
+    group.add(rim(0.31, 0.72, 0.52, seg(26)));
+    const midBand = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.04, seg(10), seg(18)), null);
+    midBand.rotation.x = Math.PI / 2;
+    midBand.position.y = 0.93;
+    group.add(midBand);
+
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.18, seg(26)), null);
+    top.position.y = 1.03;
     group.add(top);
-    for (let i = 0; i < 4; i++) {
-      const cren = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.18), null);
-      const angle = (i / 4) * Math.PI * 2;
-      cren.position.set(Math.cos(angle) * 0.22, 1.08, Math.sin(angle) * 0.22);
+
+    for (let i = 0; i < 5; i++) {
+      const cren = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.20, 0.18), null);
+      const angle = (i / 5) * Math.PI * 2;
+      cren.position.set(Math.cos(angle) * 0.24, 1.12, Math.sin(angle) * 0.24);
+      cren.rotation.y = angle * 0.1;
       group.add(cren);
     }
   } else if (type === 'n') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.72, 20), null);
-    body.position.y = 0.46;
+    // Knight: more animated-looking “horse” silhouette via layered bodies
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.30, 0.75, seg(22)), null);
+    body.position.y = 0.49;
     group.add(body);
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.2, 0.28, 12), null);
-    neck.position.set(0.05, 0.88, 0);
-    neck.rotation.z = -0.28;
+
+    const withers = new THREE.Mesh(new THREE.SphereGeometry(0.16, seg(22), seg(14)), null);
+    withers.position.set(0.06, 0.90, -0.02);
+    group.add(withers);
+
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.32, seg(16)), null);
+    neck.position.set(0.10, 0.98, -0.06);
+    neck.rotation.z = -0.35;
+    neck.rotation.y = 0.25;
     group.add(neck);
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32, 0.16), null);
-    head.position.set(0.18, 1.12, 0);
-    head.rotation.z = -0.28;
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, seg(18), seg(14)), null);
+    head.position.set(0.26, 1.18, -0.02);
     group.add(head);
-    const mane = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.32, 0.06), null);
-    mane.position.set(-0.04, 0.96, 0.06);
-    mane.rotation.y = 0.42;
+
+    const mane = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, seg(12), seg(16)), null);
+    mane.position.set(0.08, 1.05, 0.07);
+    mane.rotation.x = Math.PI / 2;
+    mane.rotation.z = 0.6;
     group.add(mane);
   } else if (type === 'b') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 0.8, 20), null);
-    body.position.y = 0.54;
-    group.add(body);
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), null);
-    ball.position.y = 1.04;
-    group.add(ball);
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.25, 16), null);
-    tip.position.y = 1.32;
-    group.add(tip);
+    // Bishop: fluted column + mitre top
+    const column = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.28, 0.86, seg(26)), null);
+    column.position.y = 0.58;
+    group.add(column);
+
+    // Flutes (simple radial rings)
+    for (let i = 0; i < 8; i++) {
+      const flute = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.75, 0.04), null);
+      const angle = (i / 8) * Math.PI * 2;
+      flute.position.set(Math.cos(angle) * 0.22, 0.58, Math.sin(angle) * 0.22);
+      flute.rotation.y = angle;
+      group.add(flute);
+    }
+
+    const baseBall = new THREE.Mesh(new THREE.SphereGeometry(0.17, seg(20), seg(14)), null);
+    baseBall.position.y = 1.00;
+    group.add(baseBall);
+
+    const mitre = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.28, seg(18)), null);
+    mitre.position.y = 1.24;
+    group.add(mitre);
   } else if (type === 'q') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.84, 20), null);
-    body.position.y = 0.56;
+    // Queen: robust body + crown spikes
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.30, 0.92, seg(26)), null);
+    body.position.y = 0.60;
     group.add(body);
-    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.15, 20), null);
-    collar.position.y = 1.02;
+
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.26, 0.18, seg(24)), null);
+    collar.position.y = 1.06;
     group.add(collar);
-    for (let i = 0; i < 6; i++) {
-      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.2, 8), null);
-      const angle = (i / 6) * Math.PI * 2;
-      spike.position.set(Math.cos(angle) * 0.22, 1.26, Math.sin(angle) * 0.22);
+
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(0.14, seg(18), seg(12)), null);
+    crown.position.y = 1.20;
+    group.add(crown);
+
+    for (let i = 0; i < 8; i++) {
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.24, seg(10)), null);
+      const angle = (i / 8) * Math.PI * 2;
+      spike.position.set(Math.cos(angle) * 0.24, 1.34, Math.sin(angle) * 0.24);
       spike.rotation.y = angle;
       group.add(spike);
     }
   } else if (type === 'k') {
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 0.9, 20), null);
-    body.position.y = 0.6;
+    // King: taller body + cross
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.34, 0.98, seg(26)), null);
+    body.position.y = 0.64;
     group.add(body);
-    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.24, 0.16, 20), null);
-    collar.position.y = 1.15;
+
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.28, 0.20, seg(22)), null);
+    collar.position.y = 1.18;
     group.add(collar);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), null);
-    head.position.y = 1.4;
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, seg(22), seg(16)), null);
+    head.position.y = 1.44;
     group.add(head);
-    const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.38, 0.08), null);
-    crossV.position.y = 1.72;
+
+    const crossV = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.44, seg(12)), null);
+    crossV.position.y = 1.78;
     group.add(crossV);
-    const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.08), null);
-    crossH.position.y = 1.76;
+
+    const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.08, 0.08), null);
+    crossH.position.y = 1.72;
     group.add(crossH);
+
+    const crown = new THREE.Mesh(new THREE.TorusGeometry(0.20, 0.03, seg(14), seg(18)), null);
+    crown.rotation.x = Math.PI / 2;
+    crown.position.y = 1.40;
+    group.add(crown);
   }
- 
+
+  // Rim highlight (set as emissive in material later)
+  const glowRim = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.045, seg(12), seg(22)), null);
+  glowRim.rotation.x = Math.PI / 2;
+  glowRim.position.y = 0.56;
+  group.add(glowRim);
+
   return group;
 }
+
  
 // ─── PIECE MANAGER ───────────────────────────────────────────────────────────
 const pieces3D = {}; // square -> mesh group
@@ -967,10 +1037,32 @@ function animatePieceMove(group, targetPos, onDone) {
     (startPos.z + targetPos.z) / 2
   );
   let t = 0;
+
+  // Soft destination ring (premium feel)
+  const ringMesh = new THREE.Mesh(
+    new THREE.RingGeometry(0.42, 0.56, currentPerformance === 'high' ? 64 : 40),
+    new THREE.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
+  );
+  ringMesh.rotation.x = Math.PI / 2;
+  ringMesh.position.copy(new THREE.Vector3(targetPos.x, 0.02, targetPos.z));
+  ringMesh.renderOrder = 10;
+  scene.add(ringMesh);
+
   activeAnimations.push({
     update(dt) {
       t += dt * 2.5;
-      if (t >= 1) { group.position.copy(targetPos); onDone?.(); return true; }
+
+      // Ring fade / pulse
+      ringMesh.material.opacity = Math.max(0, 0.65 - t * 0.65);
+      ringMesh.scale.setScalar(0.95 + Math.sin(t * Math.PI) * 0.05);
+
+      if (t >= 1) {
+        group.position.copy(targetPos);
+        scene.remove(ringMesh);
+        onDone?.();
+        return true;
+      }
+
       // Bezier arc
       const a = (1 - t) * (1 - t);
       const b = 2 * (1 - t) * t;
@@ -984,6 +1076,7 @@ function animatePieceMove(group, targetPos, onDone) {
     }
   });
 }
+
  
 function animateCharacterNod(charGroup) {
   const head = charGroup.userData.head;
@@ -1477,11 +1570,26 @@ function trySelectPiece(sq) {
   }
 
   selectedSquare = sq;
-  highlightSquare(sq, 0xe879f9, 0xe879f9, 0.6);
+
+  // Premium selection: lift + outline-like emissive
+  highlightSquare(sq, 0xe879f9, 0xe879f9, 0.65);
+  const selPiece = pieces3D[sq];
+  if (selPiece) {
+    const startY = selPiece.position.y;
+    activeAnimations.push({
+      update(dt) {
+        // quick lift
+        selPiece.position.y = startY + 0.18 * Math.sin(clock.elapsedTime * 18);
+        // keep it stable; no need to end animation
+        return false;
+      }
+    });
+  }
 
   validMoveSquares = chess.moves({ square: sq, verbose: true }).map(m => m.to);
   validMoveSquares.forEach(vsq => highlightSquare(vsq, 0x4ade80, 0x4ade80, 0.5));
 }
+
 
 // ─── RENDER LOOP ──────────────────────────────────────────────────────────────
 const clock = new THREE.Clock();
